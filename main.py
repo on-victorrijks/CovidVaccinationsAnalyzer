@@ -1,4 +1,16 @@
 import matplotlib.pyplot as plt
+from math import *
+
+# load populations
+data = open("populations.txt", "r")
+lines = data.readlines()
+lines = [line.strip() for line in lines]
+populations = {}
+for line in lines:
+    data = line.split(',')
+    name = data[0]
+    val = data[1]
+    populations[name] = val
 
 
 data = open("data.txt", "r")
@@ -30,34 +42,45 @@ for line in c_data:
 
 
 
-USA = countries['United States']
-diffUSA = []
-vpd = []
-for i,_ in enumerate(USA):
-    if i > 0:
-        lI = i-1
-        nbVaccines = _['daily_vaccinations_per_million']
-        lastVaccines = USA[lI]['daily_vaccinations_per_million']
-        if '' not in [nbVaccines,lastVaccines]:
-            vpd.append(int(lastVaccines))
-            dif = (int(nbVaccines)-int(lastVaccines))/int(nbVaccines)*1000
-            diffUSA.append(dif)
-
-USA = countries['Belgium']
-diffBE = []
-vpd = []
-for i,_ in enumerate(USA):
-    if i > 0:
-        lI = i-1
-        nbVaccines = _['daily_vaccinations_per_million']
-        lastVaccines = USA[lI]['daily_vaccinations_per_million']
-        if '' not in [nbVaccines,lastVaccines]:
-            vpd.append(int(lastVaccines))
-            dif = (int(nbVaccines)-int(lastVaccines))/int(nbVaccines)*1000
-            diffBE.append(dif)
+paths = {
+    'date':{},
+    'totalVaccinations':{},
+    'dailyVaccinationsPercentage':{},
+}
 
 
-plt.plot(diffUSA)
-plt.plot(diffBE)
-plt.ylabel('USA vaccine p million')
+for countryName in countries:
+
+    country = countries[countryName]
+    paths['date'][countryName],paths['totalVaccinations'][countryName],paths['dailyVaccinationsPercentage'][countryName] = [],[],[]
+
+    for dataEntryIndex,dateEntry in enumerate(country):
+        date = dateEntry['date']
+        try:
+            totalVaccinations = int(dateEntry['total_vaccinations'])
+        except:
+            totalVaccinations = 0
+        try:
+            dailyVaccinationsPercentage = int(dateEntry['daily_vaccinations_per_million'])/1000000
+        except:
+            dailyVaccinationsPercentage = 0
+        
+        paths['date'][countryName].append(date)
+        paths['totalVaccinations'][countryName].append(totalVaccinations)
+        paths['dailyVaccinationsPercentage'][countryName].append(dailyVaccinationsPercentage)
+
+
+countriesNames = []
+print('Enter the index of the country you want to plot')
+for i,countryName in enumerate(countries):
+    countriesNames.append(countryName)
+    print('{}: {}'.format(i,countryName))
+
+selectedCountryIndex = int(input('index: '))
+selectedCountryName = countriesNames[selectedCountryIndex]
+
+
+pop = int(populations[selectedCountryName])
+totalVaccinations = plt.plot(paths['date'][selectedCountryName], paths['totalVaccinations'][selectedCountryName])
+dailyVaccinationsPercentage = plt.plot(paths['date'][selectedCountryName], [k*pop for k in paths['dailyVaccinationsPercentage'][selectedCountryName]])
 plt.show()
